@@ -2,6 +2,22 @@ from tkinter import *
 from tkinter import messagebox
 import random
 import pyperclip
+import json
+# --------------------SEARCH WEBSITE -------------------------#
+
+def search_w():
+  inside_website = web_t.get()
+  with open("data.json","r") as data_file:
+    data_s = json.load(data_file)
+    for web in data_s:
+      if inside_website in data_s.keys():
+        password_f = data_s[inside_website]["password"]
+        email_f = data_s[inside_website]["email"]
+        messagebox.showinfo(title = "Info", message = f"Please find your password : {password_f} \n email : {email_f}")
+      else:
+        messagebox.showinfo(title = "Info", message = f"Record not found")
+  
+
 # ---------------------------- PASSWORD GENERATOR ------------------------------- #
 
 def p_generator():
@@ -35,17 +51,32 @@ def data_file():
   inside_email = email_t.get()
   inside_password = password_t.get()
   #print(f"{inside_web},{inside_email},{inside_password}")
-
+  new_data = { 
+    inside_web: {
+      "email":inside_email, 
+      "password": inside_password
+    }
+  }
+  
   if inside_web=="" or inside_email == "" or inside_password == "":
     messagebox.showinfo(title = "Oops", message = "Please don't leave any fields empty!")
 
   else:
-    is_ok = messagebox.askokcancel(title=inside_web, message= f"These are the details entered: \nEmail:{inside_email} \nPassword: {inside_password} \nIs it ok to save?")
-  
-    if is_ok:
-      f = open("data.txt","a")
-      f.write(f"{inside_web} | {inside_email} | {inside_password}\n")
-      f.close()
+    try:
+      with open("data.json", "r") as data_file:
+        # loading data from json
+        data = json.load(data_file)
+    except FileNotFoundError:
+      with open("data.json", "r") as data_file:
+        json.dump(new_data, data_file , indent = 4)
+    else:
+      # Updating data
+      data.update(new_data)
+      
+      with open("data.json","w") as data_file:
+      #saving the data
+        json.dump(data, data_file, indent = 4)
+    finally:  
       web_t.delete(0,'end')
       password_t.delete(0,"end")
       web_t.focus()
@@ -66,9 +97,12 @@ canvas.grid(column=1, row=0)
 web = Label(text="Website:", font=("Arial", 10, "bold"))
 web.grid(column=0, row=1)
 
-web_t = Entry(width=35)
-web_t.grid(row=1, column=1, columnspan = 2)
+web_t = Entry(width=18)
+web_t.grid(row=1, column=1)
 web_t.focus()
+
+search = Button(text = "Search", command=search_w)
+search.grid(column=2, row=1)
 
 # Add Email/Username and textbox
 
